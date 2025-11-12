@@ -2,7 +2,6 @@ package com.example.springforum.common.result;
 
 import com.example.springforum.common.enums.ResultCode;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,13 +9,9 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "统一返回结果封装")
 public class AppResult<T> {
-    @Schema(description = "返回状态码", example = "1")
     int code;
-    @Schema(description = "返回信息", example = "请求成功")
     String message;
-    @Schema(description = "返回数据", example = "null")
     T data;
     /*
     成功
