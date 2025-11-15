@@ -25,4 +25,8 @@ public class MD5Util {
     public static String md5(String str, String salt) {
         return md5(md5(str + salt) + salt);
     }
+
+    public static boolean checkMd5(String realPassword, String salt, String inputPassword) {
+        return md5(inputPassword, salt).equalsIgnoreCase(realPassword);
+    }
 }

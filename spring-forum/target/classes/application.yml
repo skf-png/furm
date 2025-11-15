@@ -9,6 +9,8 @@ spring:
   output:
     ansi:
       enabled: ALWAYS # ?????????
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
 
 mybatis:
   configuration:
@@ -29,3 +31,6 @@ logging:
   file:
     path: D:/project/forum # ??????
 
+forum:
+  default:
+    topBoardNum: 9

@@ -1,12 +1,14 @@
 package com.example.springforum.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Date;
 
 public class User {
     private Long id;
 
     private String username;
-
+    @JsonIgnore
     private String password;
 
     private String nickname;
@@ -17,6 +19,7 @@ public class User {
 
     private Byte gender;
 
+    @JsonIgnore
     private String salt;
 
     private String avatarUrl;
@@ -27,8 +30,10 @@ public class User {
 
     private String remark;
 
+    @JsonIgnore
     private Byte state;
 
+    @JsonIgnore
     private Byte deleteState;
 
     private Date createTime;
