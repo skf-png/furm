@@ -6,6 +6,8 @@ import com.example.springforum.common.result.AppResult;
 import com.example.springforum.mapper.ArticleMapper;
 import com.example.springforum.model.Article;
 import com.example.springforum.model.Board;
+import com.example.springforum.model.DTO.ArticleDTO;
+import com.example.springforum.model.DTO.ArticleDetailDTO;
 import com.example.springforum.model.User;
 import com.example.springforum.service.ArticleService;
 import com.example.springforum.service.BoardService;
@@ -16,6 +18,8 @@ import org.hibernate.validator.internal.metadata.aggregated.AbstractPropertyCasc
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -53,5 +57,44 @@ public class ArticleServiceImpl implements ArticleService {
         }
         boardService.addOneBoardCount(article.getBoardId());
 
+    }
+
+    @Override
+    public List<ArticleDTO> getAllArticles() {
+        return articleMapper.selectAllArticle();
+    }
+
+    @Override
+    public List<ArticleDTO> getArticlesByBoardId(Long boardId) {
+        if  (boardId == null) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        return articleMapper.selectArticlesByBoardId(boardId);
+    }
+
+    @Override
+    public ArticleDetailDTO getArticleDetail(Long articleId) {
+        //判空
+        if (articleId == null) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        //获取文章细节
+        ArticleDetailDTO articleDetailDTO = articleMapper.selectDetailById(articleId);
+        //如果不存在
+        if  (articleDetailDTO == null) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        //访问量+1
+        Article article = new Article();
+        article.setId(articleId);
+        article.setVisitCount(articleDetailDTO.getVisitCount() + 1);
+        //更新
+        int row = articleMapper.updateByPrimaryKeySelective(article);
+        if (row != 1) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+        //返回的访问量应该+1
+        articleDetailDTO.setVisitCount(articleDetailDTO.getVisitCount() + 1);
+        return articleDetailDTO;
     }
 }

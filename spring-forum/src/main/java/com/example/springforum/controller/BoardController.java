@@ -6,9 +6,11 @@ import com.example.springforum.common.result.AppResult;
 import com.example.springforum.model.Board;
 import com.example.springforum.service.BoardService;
 import jakarta.annotation.Resource;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -30,4 +32,14 @@ public class BoardController {
         }
         return AppResult.success(boards);
     }
+
+    @GetMapping("/getBoardById")
+    public AppResult getBoardById(@RequestParam @NotNull Long id) {
+        Board board = boardService.getBoardById(id);
+        if (board == null ||  board.getDeleteState() == 1) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        return AppResult.success(board);
+    }
+
 }

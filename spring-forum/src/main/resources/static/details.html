@@ -257,8 +257,31 @@
     // url: '/article/getById?id=' + currentArticle.id,
     // 成功后， 调用initArticleDetails()方法，初始化页面内容
     $.ajax({
-      
-
+        type: 'GET',                     // 请求方法：GET
+        url: '/article/getDetail?id=' + currentArticle.id, // 请求的URL，附带文章ID参数
+        success: function (respData) {   // 请求成功时的回调函数
+            // 使用状态码判断请求是否成功（通常 code === 0 表示成功）
+                console.log(respData);
+            if (respData.code == 0) {
+                // 初始化页面内容，传入返回的数据
+                initArticleDetails(respData.data);
+            } else {
+                // 请求成功但业务逻辑失败，显示提示信息
+                $.toast({
+                    heading: '提示',         // 提示标题
+                    text: respData.message,  // 提示内容
+                    icon: 'info'             // 图标类型：info（信息）
+                });
+            }
+        },
+        error: function () {               // 请求失败时的回调函数（如网络错误、404、500等）
+            // 显示网络或服务器错误提示
+            $.toast({
+                heading: '错误',           // 提示标题
+                text: '出错了，请联系管理员', // 提示内容
+                icon: 'error'              // 图标类型：error（错误）
+            });
+        }
     });
 
     // ===================== 初始化页面内空 ======================
@@ -266,14 +289,14 @@
       // 设置当前操作的帖子为最新查询出来的值
       currentArticle = article;
       // 默认头像路径
-      if (!article.user.avatarUrl) {
-        article.user.avatarUrl = avatarUrl;
+      if (!article.avatarUrl) {
+        article.avatarUrl = avatarUrl;
       }
 
       // 设置头像
-      $('#article_details_author_avatar').css('background-image', 'url(' + article.user.avatarUrl + ')');
+      $('#article_details_author_avatar').css('background-image', 'url(' + article.avatarUrl + ')');
       // 设置用户名
-      $('#article_details_author_name').html(article.user.nickname);
+      $('#article_details_author_name').html(article.nickname);
       // 设置帖子Id
       $('#details_article_id').val(article.id);
       // 设置帖子标题
@@ -295,12 +318,12 @@
         $('.details-is-own').show();
       }
       // 是否显示站内信按钮
-      if (article.user.id == currentUserId) {
+      if (article.id == currentUserId) {
         $('#div_details_send_message').hide();
       } else {
         // 设置站内信目标用户信息
         $('#btn_details_send_message').click(function() {
-          setMessageReceiveUserInfo(article.user.id, article.user.nickname);
+          setMessageReceiveUserInfo(article.id, article.nickname);
         });
       }
       // 个人帖子列表

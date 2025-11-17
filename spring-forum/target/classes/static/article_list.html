@@ -59,6 +59,7 @@
   <!-- 正文 结束 -->
 </div>
 <script>
+
   $(function () {
     // ========================= 获取版块下帖子信息 =======================
     // 获取当前选中的版块
@@ -80,21 +81,84 @@
 
     // ========================= 获取版块信息 =======================
     // 
-    function getBoardInfo (boardId) {
-      if (!boardId) {
-        return;
-      }
-      // 发送请求， 成功后，显示版块相关信息
-      $.ajax({
-        
-      });
+    function getBoardInfo(boardId) {
+        if (!boardId) {
+            return;
+        }
+
+        // 发送 AJAX GET 请求，根据 boardId 获取版块信息
+        $.ajax({
+            type: 'GET', // 请求方法
+            url: 'board/getBoardById?id=' + boardId, // 请求地址
+
+            // 请求成功回调
+            success: function (respData) {
+                // 根据业务状态码判断是否成功（通常 code === 0 表示成功）
+                if (respData.code === 0) {
+                    // 设置版块标题
+                    $('#article_list_board_title').html(respData.data.name);
+
+                    // 设置帖子数量，并显示该元素
+                    $('#article_list_count_board').html('帖子数量: ' + respData.data.articleCount);
+                    $('#article_list_count_board').show();
+                } else {
+                    // 打印服务端返回的错误信息到控制台（调试用）
+                    console.log(respData.message);
+
+                    // 使用 toast 提示用户错误信息
+                    $.toast({
+                        heading: '提示',           // 提示标题
+                        text: respData.message,    // 提示内容
+                        icon: 'info'               // 图标类型：info, success, error, warning
+                    });
+                }
+            },
+
+            // 请求失败回调（如网络错误、404、500 等）
+            error: function () {
+                // 提示用户发生了未知错误
+                $.toast({
+                    heading: '错误',
+                    text: '出错了，请联系管理员',
+                    icon: 'error'
+                });
+            }
+        });
     }
 
     // ========================= 获取帖子列表 =======================
     // 成功后，调用listBuildArticleList()方法，构建帖子列表
     $.ajax({
-      
+        type: 'GET', // 请求方法
+        url: '/article/getArticles' + queryString, // 接口URL，确保 queryString 以 ? 开头，如 ?boardId=1
 
+        // 请求成功回调
+        success: function (respData) {
+            // 使用状态码判断请求是否成功（通常 code === 0 表示成功）
+            if (respData.code === 0) {
+                // 请求成功，调用方法渲染文章列表
+                listBuildArticleList(respData.data);
+            } else {
+                // 打印错误信息到控制台（调试用）
+                console.log(respData.message);
+
+                // 使用 toast 组件给用户展示错误提示
+                $.toast({
+                    heading: '提示',      // 提示标题
+                    text: respData.message, // 提示内容
+                    icon: 'info'          // 图标类型：info / success / error / warning
+                });
+            }
+        },
+        // 请求失败回调（比如网络错误、404、500 等）
+        error: function () {
+            // 提示用户发生了网络或服务端错误
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员',
+                icon: 'error'
+            });
+        }
     });
 
     // ========================= 构造帖子列表 =======================
@@ -108,14 +172,14 @@
       // 遍历结果
       data.forEach(article => {
         // 设置默认头像
-        if (!article.user.avatarUrl) {
-          article.user.avatarUrl = avatarUrl;
+        if (!article.avatarUrl) {
+          article.avatarUrl = avatarUrl;
         }
         // 构造HTML
         let articleHtmlStr = '<div>'
           + ' <div class="row">'
           + ' <div class="col-auto">'
-          + ' <span class="avatar" style="background-image: url(' + article.user.avatarUrl + ')"></span>'
+          + ' <span class="avatar" style="background-image: url(' + article.avatarUrl + ')"></span>'
           + ' </div>'
           + ' <div class="col">'
           + ' <div class="text-truncate">'
@@ -135,7 +199,7 @@
           + ' <path d="M12 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"></path>'
           + ' <path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"></path>'
           + ' </svg> '
-          + article.user.nickname
+          + article.nickname
           + ' </li>'
           + ' <li class="list-inline-item">'
           + ' <svg xmlns="http://www.w3.org/2000/svg"'

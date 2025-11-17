@@ -113,12 +113,41 @@
       }
 
       // 构造帖子对象
-      
+      let postDat = JSON.stringify({
+        boardId: boardIdEl.val(),
+        title: titleEl.val(),
+        content: contentEl.val()
+      })
 
       // 提交, 成功后调用changeNavActive($('#nav_board_index'));回到首页并加载帖子列表
       // contentType: 'application/x-www-form-urlencoded'
       $.ajax({
-        
+        type: 'post',
+        url: '/article/addArticle',
+        contentType: 'application/json',
+        data: postDat,
+        success: function(res) {
+          if (res.code == 0) {
+            changeNavActive($('#nav_board_index'));
+                $.toast({
+                heading: "成功！",
+                text: '发布成功',
+                inco: 'success'
+              })
+          } else {
+                $.toast({
+                heading: "警告",
+                text: res.message,
+                inco: 'warning'
+              })
+          }
+        }, error: function() {
+                  $.toast({
+                heading: "错误",
+                text: '提交出错',
+                inco: 'error'
+              })
+        }
       });
     });
   });
