@@ -59,9 +59,10 @@ public interface ArticleMapper {
             "order by a.createTime desc;")
     List<ArticleDTO> selectArticlesByBoardId(Long BoardId);
 
-    @Select("select u.id,\n" +
+    @Select("select " +
             "       u.avatarUrl,\n" +
             "       u.nickname,\n" +
+            "       u.id as userId, " +
             "       b.name,\n" +
             "       a.id,\n" +
             "       a.boardId,\n" +

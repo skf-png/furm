@@ -87,7 +87,44 @@
     // ========================== 获取帖子详情 ========================== 
     // 成功后，设置ID,版块名，标题，并初始编辑区同时设置正文initEditor(edit_article.content);
     $.ajax({
-
+        type: 'get',
+        url: 'article/getDetail?id=' + currentArticle.id,
+        // 成功回调
+        success: function (respData) {
+            
+            // 用状态码判断是否成功
+            if (respData.code == 0) {
+                //console.log(currentArticle)
+                console.log(respData)
+                // 初始化页面内容
+                let edit_article = respData.data;
+                // ID
+                $('#edit_article_id').val(edit_article.id);
+                // 版块名
+                $('#edit_article_board_name').html(edit_article.name);
+                // title
+                $('#edit_article_title').val(edit_article.title);
+                console.log(edit_article.title)
+                // content
+                initEditor(edit_article.content);
+            } else {
+                // 日志
+                console.log(respData.message);
+                // 提示
+                $.toast({
+                    heading: '提示',
+                    text: respData.message,
+                    icon: 'info'
+                });
+            }
+        },
+        error: function () {
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员',
+                icon: 'error'
+            });
+        }
     });
     
     // ========================== 初始化编辑器 ========================== 
@@ -149,11 +186,50 @@
       }
 
         // 构造修改对象
-
+          let editArticle = JSON.stringify({
+          id: articleIdEl.val().trim(),     // 文章ID
+          title: articleContentEl.val(),
+          content: articleContentEl.val().trim()  // 文章内容
+          });
         // 发送修改请求, 成功后跳转至首页changeNavActive($('#nav_board_index'));
-        $.ajax({
+    $.ajax({
+        type: 'POST',
+        url: 'article/update',
+        contentType: 'application/json',
+        data: editArticle,
+        // 请求成功时的回调
+        success: function (respData) {
+          // 先提示：修改成功
+          $.toast({
+            heading: '提示',
+            text: '修改成功',
+            icon: 'success'
+          });
 
-        });
+          // 根据后端返回的状态码判断是否真正成功
+          if (respData.code == 0) {
+            // 如果后端返回 code === 0，认为是操作成功，跳转到首页（或论坛版块首页）
+            changeNavActive($('#nav_board_index'));
+          } else {
+            // 后端业务逻辑失败，打印日志并给用户提示
+            console.log(respData.message);
+            $.toast({
+              heading: '提示',
+              text: respData.message,
+              icon: 'info'
+            });
+          }
+        },
+        // 请求失败时的回调（比如网络错误、服务器宕机等）
+        error: function () {
+          $.toast({
+            heading: '错误',
+            text: '出错了，请联系管理员',
+            icon: 'error'
+          });
+        }
+      });
+
     });
     
   });

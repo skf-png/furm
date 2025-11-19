@@ -10,6 +10,7 @@ import com.example.springforum.model.DTO.ArticleDTO;
 import com.example.springforum.model.DTO.ArticleDetailDTO;
 import com.example.springforum.model.User;
 import com.example.springforum.request.ArticleRequest;
+import com.example.springforum.request.UpdateArticleRequest;
 import com.example.springforum.service.ArticleService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
@@ -70,11 +71,40 @@ public class ArticleController {
     }
 
     @GetMapping("/getDetail")
-    public AppResult getDetail(@NotNull Long id) {
-        ArticleDetailDTO articleDetail = articleService.getArticleDetail(id);
+    public AppResult getDetail(HttpServletRequest request, @NotNull Long id) {
+        HttpSession  session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+        //获取文章
+        ArticleDetailDTO articleDetail = articleService.getArticleDetail(id, true);
         if (articleDetail == null) {
             throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
         }
+        if (articleDetail.getUserId() == user.getId()) {
+            articleDetail.setIsOwn(true);
+        }
         return AppResult.success(articleDetail);
+    }
+
+    @PostMapping("/update")
+    public AppResult updateArticle(HttpServletRequest request,
+                                   @RequestBody @Validated
+                                   UpdateArticleRequest updateArticleRequest) {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+
+        if (user.getState() == 1) {
+            return AppResult.failed(ResultCode.FAILED_USER_BANNED);
+        }
+
+        ArticleDetailDTO articleDetail = articleService.getArticleDetail(updateArticleRequest.getId(), false);
+        if (articleDetail == null) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        if (articleDetail.getIsOwn()) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_FORBIDDEN));
+        }
+
+        articleService.updateArticle(updateArticleRequest);
+        return AppResult.success();
     }
 }

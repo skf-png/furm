@@ -9,6 +9,7 @@ import com.example.springforum.model.Board;
 import com.example.springforum.model.DTO.ArticleDTO;
 import com.example.springforum.model.DTO.ArticleDetailDTO;
 import com.example.springforum.model.User;
+import com.example.springforum.request.UpdateArticleRequest;
 import com.example.springforum.service.ArticleService;
 import com.example.springforum.service.BoardService;
 import com.example.springforum.service.UserService;
@@ -73,7 +74,7 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public ArticleDetailDTO getArticleDetail(Long articleId) {
+    public ArticleDetailDTO getArticleDetail(Long articleId, Boolean isAdd) {
         //判空
         if (articleId == null) {
             throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
@@ -84,17 +85,40 @@ public class ArticleServiceImpl implements ArticleService {
         if  (articleDetailDTO == null) {
             throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
         }
-        //访问量+1
-        Article article = new Article();
-        article.setId(articleId);
-        article.setVisitCount(articleDetailDTO.getVisitCount() + 1);
-        //更新
-        int row = articleMapper.updateByPrimaryKeySelective(article);
-        if (row != 1) {
-            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        //根据传参决定访问量是否增加
+        if (isAdd) {
+            //访问量+1
+            Article article = new Article();
+            article.setId(articleId);
+            article.setVisitCount(articleDetailDTO.getVisitCount() + 1);
+            //更新
+            int row = articleMapper.updateByPrimaryKeySelective(article);
+            if (row != 1) {
+                throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+            }
         }
+
         //返回的访问量应该+1
         articleDetailDTO.setVisitCount(articleDetailDTO.getVisitCount() + 1);
         return articleDetailDTO;
+    }
+
+    @Override
+    public void updateArticle(UpdateArticleRequest request) {
+        if (request == null || request.getId() == null || request.getTitle() == null
+        || request.getContent() == null) {
+            log.warn(request.getContent() +  request.getTitle());
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        Article updateArticle = new Article();
+        updateArticle.setId(request.getId());
+        updateArticle.setTitle(request.getTitle());
+        updateArticle.setContent(request.getContent());
+
+        int row =  articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
     }
 }

@@ -13,6 +13,7 @@ public class ArticleDetailDTO {
     private String avatarUrl; // u.avatarUrl
     private String nickname;  // u.nickname
     private String name;
+    private Long userId;
 
     // === 来自 t_article 表的字段 ===
     private Long id;              // a.id
@@ -25,4 +26,5 @@ public class ArticleDetailDTO {
     private Byte state;        // a.state
     private Date createTime;      // a.createTime
     private Date updateTime;      // a.updateTime
+    private Boolean isOwn = false;
 }

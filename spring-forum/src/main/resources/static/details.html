@@ -314,9 +314,10 @@
       // 让内容以markdown 的形式显示
       editormd.markdownToHTML('details_article_content', { markdown: article.content });
       // 编辑权限通过后台返回的属性值处理
-      if (article.own) {
+      if (article.isOwn) {
         $('.details-is-own').show();
       }
+      console.log(article.isOwn)
       // 是否显示站内信按钮
       if (article.id == currentUserId) {
         $('#div_details_send_message').hide();
