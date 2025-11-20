@@ -8,10 +8,13 @@ import com.example.springforum.common.utils.UUIDUtil;
 import com.example.springforum.model.User;
 import com.example.springforum.request.LoginRequest;
 import com.example.springforum.request.RegisterRequest;
+import com.example.springforum.request.UpdatePasswordRequest;
+import com.example.springforum.request.UpdateUserRequest;
 import com.example.springforum.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -99,6 +102,35 @@ public class UserController {
     public AppResult logout(HttpServletRequest request) {
         HttpSession session = request.getSession(true);
         session.invalidate();
+        return AppResult.success();
+    }
+
+    @PostMapping("/updateUserInfo")
+    public AppResult updateUserInfo(HttpServletRequest request,
+                                    @RequestBody @NotNull UpdateUserRequest userInfo) {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+        User updateUser = new User();
+        //封装
+        updateUser.setId(user.getId());
+        updateUser.setUsername(userInfo.getUsername());
+        updateUser.setNickname(userInfo.getNickname());
+        updateUser.setEmail(userInfo.getEmail());
+        updateUser.setGender(userInfo.getGender());
+        updateUser.setRemark(userInfo.getRemark());
+        updateUser.setPhoneNum(userInfo.getPhoneNum());
+        //更新
+        User user1 = userService.updateUserInfo(updateUser);
+        session.setAttribute(Constant.USER_SESSION_KEY, user1);
+
+        return AppResult.success();
+    }
+    @PostMapping("/updatePassword")
+    public AppResult updatePassword(HttpServletRequest request,
+                                    @RequestBody @Validated UpdatePasswordRequest updatePasswordRequest) {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+        userService.updatePassword(user.getId(), updatePasswordRequest.getOldPassword(), updatePasswordRequest.getNewPassword());
         return AppResult.success();
     }
 }

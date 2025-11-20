@@ -188,4 +188,13 @@ public class ArticleServiceImpl implements ArticleService {
             throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
         }
     }
+
+    @Override
+    public List<ArticleDetailDTO> getArticlesByUserId(Long userId) {
+        if (userId == null || userId < 0) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        List<ArticleDetailDTO> articleDetailDTOS = articleMapper.selectDetailByUserId(userId);
+        return articleDetailDTOS;
+    }
 }

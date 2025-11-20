@@ -461,7 +461,8 @@
         let replyUserProfileBtn = replyItem.find('.a_reply_user_profile');
         replyUserProfileBtn.click(function () {
           // 设置要查看用户的Id
-          profileUserId = articleReply.id;
+          profileUserId = articleReply.userId;
+          console.log('replyid:'+profileUserId);
           $('#bit-forum-content').load('profile.html');
         });
         // 添加到回复区

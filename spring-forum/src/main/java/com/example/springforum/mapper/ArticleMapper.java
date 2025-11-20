@@ -83,4 +83,23 @@ public interface ArticleMapper {
             "and a.id = #{Id} " +
             "order by a.createTime desc;")
     public ArticleDetailDTO selectDetailById(Long Id);
+
+    @Select("select b.name,\n" +
+            "       a.id,\n" +
+            "       a.boardId,\n" +
+            "       a.title,\n" +
+            "       a.content,\n" +
+            "       a.visitCount,\n" +
+            "       a.replyCount,\n" +
+            "       a.likeCount,\n" +
+            "       a.state,\n" +
+            "       a.createTime,\n" +
+            "       a.updateTime\n" +
+            "from t_article a,\n" +
+            "     t_board b\n" +
+            "where a.deleteState = 0\n" +
+            "  and a.boardId = b.id\n" +
+            "  and a.userId = #{id}\n" +
+            "order by a.createTime desc;")
+    public List<ArticleDetailDTO> selectDetailByUserId(Long id);
 }

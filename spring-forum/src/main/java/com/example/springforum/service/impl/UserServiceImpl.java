@@ -4,6 +4,7 @@ import com.example.springforum.common.enums.ResultCode;
 import com.example.springforum.common.exception.AppException;
 import com.example.springforum.common.result.AppResult;
 import com.example.springforum.common.utils.MD5Util;
+import com.example.springforum.common.utils.UUIDUtil;
 import com.example.springforum.mapper.UserMapper;
 import com.example.springforum.model.User;
 import com.example.springforum.service.UserService;
@@ -139,6 +140,99 @@ public class UserServiceImpl implements UserService {
         int row = userMapper.updateByPrimaryKeySelective(updateUser);
         if (row != 1) {
             log.warn("影响行数不为1");
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+
+    }
+
+    @Override
+    public User updateUserInfo(User user) {
+        if (user == null || user.getId() == null || user.getId() < 0) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        //判断用户是否存在
+        User user1 = userMapper.selectByPrimaryKey(user.getId());
+        if (user1 == null) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        //校验参数
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        boolean isUpdate = false;
+        //检验用户名是否合法
+        if (StringUtils.hasLength(user.getUsername())
+                && !user.getUsername().equals(user1.getUsername())) {
+            //判断用户名是否重复
+            User user2 = userMapper.getUserByUsername(user.getUsername());
+            if (user2 != null) {
+                throw new AppException(AppResult.failed(ResultCode.FAILED_USER_EXISTS));
+            }
+            updateUser.setUsername(user.getUsername());
+            isUpdate = true;
+        }
+
+        //检验昵称
+        if (StringUtils.hasLength(user.getNickname())
+        && !user.getNickname().equals(user1.getNickname())) {
+            updateUser.setNickname(user.getNickname());
+            isUpdate = true;
+        }
+        //检查邮箱
+        if (StringUtils.hasLength(user.getEmail())
+        && !user.getEmail().equals(user1.getEmail())) {
+            updateUser.setEmail(user.getEmail());
+            isUpdate = true;
+        }
+        //检查手机号
+        if (StringUtils.hasLength(user.getPhoneNum())
+        && !user.getPhoneNum().equals(user1.getPhoneNum())) {
+            updateUser.setPhoneNum(user.getPhoneNum());
+            isUpdate = true;
+        }
+        //个人简介
+        if (user.getRemark() != null && !user.getRemark().equals(user1.getRemark())) {
+            updateUser.setRemark(user.getRemark());
+            isUpdate = true;
+        }
+        //检验是否更新
+        if (!isUpdate) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        //更新
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (row != 1) {
+            log.warn("update row: " + row);
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+
+        return userMapper.selectByPrimaryKey(user.getId());
+    }
+
+    @Override
+    public void updatePassword(Long userId, String oldPassword, String newPassword) {
+        if (userId == null || oldPassword == null || newPassword == null) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        User user = userMapper.selectByPrimaryKey(userId);
+        if (user == null || user.getDeleteState() == 1) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_USER_NOT_EXISTS));
+        }
+        //判断输入密码是否正确
+        if (!MD5Util.checkMd5(user.getPassword(), user.getSalt(),oldPassword)) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_PARAMS_VALIDATE));
+        }
+        //生成新的salt
+        String salt = UUIDUtil.UUID32();
+        String encryptPassword = MD5Util.md5(newPassword, salt);
+        //封装
+        User updateUser = new User();
+        updateUser.setId(userId);
+        updateUser.setPassword(encryptPassword);
+        updateUser.setSalt(salt);
+        //更新
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (row != 1) {
+            log.warn("update row: " + row);
             throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
         }
 

@@ -11,12 +11,15 @@ import com.example.springforum.model.DTO.ArticleDetailDTO;
 import com.example.springforum.model.User;
 import com.example.springforum.request.ArticleRequest;
 import com.example.springforum.request.UpdateArticleRequest;
+import com.example.springforum.request.UpdateUserRequest;
 import com.example.springforum.service.ArticleService;
+import com.example.springforum.service.UserService;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.http11.HttpOutputBuffer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +32,8 @@ import java.util.List;
 public class ArticleController {
     @Resource
     private ArticleService articleService;
+    @Autowired
+    private UserService userService;
 
     @PostMapping("/addArticle")
     public AppResult addArticle(HttpServletRequest request,
@@ -146,4 +151,22 @@ public class ArticleController {
 
         return AppResult.success();
     }
+
+
+    @GetMapping("/getArticlesByUserId")
+    public AppResult getArticlesByUserId(HttpServletRequest request, Long userId) {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+
+        List<ArticleDetailDTO> result = null;
+        if (userId != null) {
+            result = articleService.getArticlesByUserId(userId);
+        } else {
+            result = articleService.getArticlesByUserId(user.getId());
+        }
+
+        return AppResult.success(result);
+    }
+
+
 }

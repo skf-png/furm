@@ -14,4 +14,8 @@ public interface UserService {
 
     public void subOneArticleCount(Long id);
 
+    User updateUserInfo(User user);
+
+    void updatePassword(Long userId,String oldPassword,String newPassword);
+
 }

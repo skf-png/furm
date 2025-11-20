@@ -23,4 +23,6 @@ public interface ArticleService {
     void deleteArticle(Long id);
 
     void addOneReplyCount(Long id);
+
+    List<ArticleDetailDTO> getArticlesByUserId(Long userId);
 }

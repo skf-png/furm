@@ -98,17 +98,43 @@
     // 构造查询用户信息的queryString
     let userInfoQueryString = '';
     if (profileUserId) {
-      userInfoQueryString = '?id=' + profileUserId
+      userInfoQueryString = '?userId=' + profileUserId
     }
     // ============= 获取用户信息 =============
     // 成功时调用initProfileUserInfo()方法，初始化用户数据
     $.ajax({
-      
+      type: 'get',
+      url: 'user/getUser' + userInfoQueryString,
+      success: function(respData) {
+            if (respData.code === 0) {
+                // 请求成功，调用方法渲染文章列表
+                initProfileUserInfo(respData.data);
+            } else {
+                // 打印错误信息到控制台（调试用）
+                console.log(respData.message);
+
+                // 使用 toast 组件给用户展示错误提示
+                $.toast({
+                    heading: '提示',      // 提示标题
+                    text: respData.message, // 提示内容
+                    icon: 'info'          // 图标类型：info / success / error / warning
+                });
+            }
+        },
+        // 请求失败回调（比如网络错误、404、500 等）
+        error: function () {
+            // 提示用户发生了网络或服务端错误
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员',
+                icon: 'error'
+            });
+        }
     });
 
     // ============= 设置Profile页面用户信息 ================
     function initProfileUserInfo(user) {
-      console.log(user);
+      //console.log(user);
       // 默认头像路径
       if (!user.avatarUrl) {
         user.avatarUrl = avatarUrl;
@@ -153,7 +179,33 @@
     // 成功后，调用buildProfileUserArticle()方法，构造帖子列表
 
     $.ajax({
-      
+      type: 'get',
+      url: 'article/getArticlesByUserId' + articleListQueryString,
+      success: function(respData) {
+            if (respData.code === 0) {
+                // 请求成功，调用方法渲染文章列表
+                buildProfileUserArticle(respData.data);
+            } else {
+                // 打印错误信息到控制台（调试用）
+                console.log(respData.message);
+
+                // 使用 toast 组件给用户展示错误提示
+                $.toast({
+                    heading: '提示',      // 提示标题
+                    text: respData.message, // 提示内容
+                    icon: 'info'          // 图标类型：info / success / error / warning
+                });
+            }
+        },
+        // 请求失败回调（比如网络错误、404、500 等）
+        error: function () {
+            // 提示用户发生了网络或服务端错误
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员',
+                icon: 'error'
+            });
+        }
     });
 
     // ============= 构建用户帖子列表 =============
