@@ -188,7 +188,7 @@
         // 构造修改对象
           let editArticle = JSON.stringify({
           id: articleIdEl.val().trim(),     // 文章ID
-          title: articleContentEl.val(),
+          title: articleTitleEl.val(),
           content: articleContentEl.val().trim()  // 文章内容
           });
         // 发送修改请求, 成功后跳转至首页changeNavActive($('#nav_board_index'));

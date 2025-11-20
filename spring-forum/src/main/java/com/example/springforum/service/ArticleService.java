@@ -17,4 +17,10 @@ public interface ArticleService {
     public ArticleDetailDTO getArticleDetail(Long articleId, Boolean isAdd);
 
     public void updateArticle(UpdateArticleRequest request);
+
+    void addLikeCount(Long id);
+
+    void deleteArticle(Long id);
+
+    void addOneReplyCount(Long id);
 }

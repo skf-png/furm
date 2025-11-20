@@ -100,11 +100,50 @@ public class ArticleController {
         if (articleDetail == null) {
             throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
         }
-        if (articleDetail.getIsOwn()) {
+        if (articleDetail.getUserId() != user.getId()) {
             throw new AppException(AppResult.failed(ResultCode.FAILED_FORBIDDEN));
         }
 
         articleService.updateArticle(updateArticleRequest);
+        return AppResult.success();
+    }
+
+    /**
+     * 点赞操作
+     * @param request
+     * @param id 文章id
+     * @return
+     */
+    @PostMapping("/addLikeCount")
+    public AppResult addLikeCount(HttpServletRequest request, @NotNull Long id) {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+        if (user.getState() == 1) {
+            return AppResult.failed(ResultCode.FAILED_USER_BANNED);
+        }
+        articleService.addLikeCount(id);
+
+        return AppResult.success();
+    }
+
+    @PostMapping("/delete")
+    public AppResult deleteArticle(HttpServletRequest request, @NotNull Long id) {
+        HttpSession session = request.getSession(false);
+        User user = (User) session.getAttribute(Constant.USER_SESSION_KEY);
+        if (user.getState() == 1) {
+            return AppResult.failed(ResultCode.FAILED_USER_BANNED);
+        }
+        ArticleDetailDTO articleDetail = articleService.getArticleDetail(id, false);
+
+        if (articleDetail == null) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        if (articleDetail.getUserId() != user.getId()) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_FORBIDDEN));
+        }
+
+        articleService.deleteArticle(id);
+
         return AppResult.success();
     }
 }

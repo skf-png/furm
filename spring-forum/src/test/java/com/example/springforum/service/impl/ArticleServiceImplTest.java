@@ -18,7 +18,7 @@ class ArticleServiceImplTest {
     @Test
     void getArticleDetail() {
         ArticleDetailDTO articleDetail = articleMapper.selectDetailById(1l);
-        articleDetail = articleServiceImpl.getArticleDetail(1l);
+//        articleDetail = articleServiceImpl.getArticleDetail(1l);
         System.out.println(articleDetail.toString());
     }
 
@@ -29,5 +29,15 @@ class ArticleServiceImplTest {
         request.setTitle("title");
         request.setContent("content");
         articleServiceImpl.updateArticle(request);
+    }
+
+    @Test
+    void addLikeCount() {
+        articleServiceImpl.addLikeCount(1l);
+    }
+
+    @Test
+    void deleteArticle() {
+        articleServiceImpl.deleteArticle(1l);
     }
 }

@@ -11,6 +11,8 @@ public interface BoardService {
 
     public void addOneBoardCount(Long id);
 
+    public void subOneBoardCount(Long id);
+
     Board getBoardById(Long id);
 
 }

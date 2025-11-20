@@ -12,4 +12,6 @@ public interface UserService {
 
     public void addOneArticleCount(Long id);
 
+    public void subOneArticleCount(Long id);
+
 }

@@ -115,4 +115,32 @@ public class UserServiceImpl implements UserService {
             throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
         }
     }
+
+    @Override
+    public void subOneArticleCount(Long id) {
+        //判空
+        if (id == null) {
+            log.info(ResultCode.ERROR_IS_NULL.toString());
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        User user = userMapper.selectByPrimaryKey(id);
+
+        if (user == null) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        User updateUser = new User();
+        updateUser.setId(user.getId());
+        updateUser.setArticleCount(user.getArticleCount() - 1);
+        //如果小于0
+        if (updateUser.getArticleCount() < 0) {
+            updateUser.setArticleCount(0);
+        }
+
+        int row = userMapper.updateByPrimaryKeySelective(updateUser);
+        if (row != 1) {
+            log.warn("影响行数不为1");
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+
+    }
 }

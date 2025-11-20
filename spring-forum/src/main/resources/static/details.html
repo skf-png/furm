@@ -344,9 +344,38 @@
     // url: 'article/getReplies?articleId=' + currentArticle.id
     // 成功后，调用buildArticleReply()方法构建回复列表
     function loadArticleDetailsReply() {
-      $.ajax({
-        
-      });
+        // 构建请求URL，使用模板字符串增强可读性
+        const url = `/reply/getReply?articleId=${encodeURIComponent(currentArticle.id)}`;
+
+        // 发送GET请求获取文章回复
+        $.ajax({
+            type: 'GET', // 请求方法使用大写
+            url: url,
+            dataType: 'json', // 明确指定预期的数据类型
+            success: function (respData) {
+                // 使用严格相等比较状态码
+                if (respData.code === 0) {
+                    // 构建并渲染回复列表
+                    buildArticleReply(respData.data);
+                } else {
+                    // 显示错误提示信息
+                    $.toast({
+                        heading: '提示',
+                        text: respData.message || '加载回复失败，请稍后重试。',
+                        icon: 'info'
+                    });
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                // 显示通用错误提示，并记录错误详情
+                console.error('加载回复时出错:', textStatus, errorThrown);
+                $.toast({
+                    heading: '错误',
+                    text: '出错了，请联系管理员。',
+                    icon: 'error'
+                });
+            }
+        });
     }
     // 
     function buildArticleReply(data) {
@@ -360,15 +389,15 @@
       $('#details_reply_area').html('');
       data.forEach(articleReply => {
         // 默认头像路径
-      if (!articleReply.user.avatarUrl) {
-        articleReply.user.avatarUrl = avatarUrl;
+      if (!articleReply.avatarUrl) {
+        articleReply.avatarUrl = avatarUrl;
       }
         // 构造回复记录
         let replyHtml = '<div class="row" >'
           + ' <div class="col-3 card">'
           + ' <div class="card-body p-4 text-center">'
-          + ' <span class="avatar avatar-xl mb-3 rounded" style="background-image: url(' + articleReply.user.avatarUrl + ')"></span>'
-          + ' <h3 class="m-0 mb-1"><a href="javascript:void(0);" class="a_reply_user_profile">' + articleReply.user.nickname + '</a></h3>'
+          + ' <span class="avatar avatar-xl mb-3 rounded" style="background-image: url(' + articleReply.avatarUrl + ')"></span>'
+          + ' <h3 class="m-0 mb-1"><a href="javascript:void(0);" class="a_reply_user_profile">' + articleReply.nickname + '</a></h3>'
           + ' <div class="div_reply_send_message" style="margin-top: 10px;">'
           + ' <a href="javascript:void(0);" class="btn btn-primary btn_reply_send_message" data-bs-toggle="modal" data-bs-target="#index_message_modal">'
           + ' <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-mail" width="24" height="24"'
@@ -416,7 +445,7 @@
         // 获取标题的 a 标签
         let replySendMessageDiv = replyItem.find('.div_reply_send_message');
         // 是否显示站内信按钮
-        if (articleReply.user.id == currentUserId) {
+        if (articleReply.id == currentUserId) {
           replySendMessageDiv.css('display', 'none');
         } else {
           console.log('显示回复中的站内信');
@@ -425,14 +454,14 @@
           console.log(replySendMessageBtn);
           replySendMessageBtn.click(function() {
             console.log(articleReply);
-            setMessageReceiveUserInfo(articleReply.user.id, articleReply.user.nickname);
+            setMessageReceiveUserInfo(articleReply.id, articleReply.nickname);
         });
         }
         // 个人帖子列表
         let replyUserProfileBtn = replyItem.find('.a_reply_user_profile');
         replyUserProfileBtn.click(function () {
           // 设置要查看用户的Id
-          profileUserId = articleReply.user.id;
+          profileUserId = articleReply.id;
           $('#bit-forum-content').load('profile.html');
         });
         // 添加到回复区
@@ -451,25 +480,107 @@
     // url: '/article/thumbsUp?id=' + currentArticle.id
     // 成功后，修改点赞个数 currentArticle.likeCount = currentArticle.likeCount + 1;
     $('#details_btn_like_count').click(function () {
-      $.ajax({
-        
-      });
+        $.ajax({
+            type: 'POST',
+            url: '/article/addLikeCount?id=' + currentArticle.id,
+            success: function (respData) {
+                // 使用状态码判断是否成功
+                if (respData.code === 0) {
+                    // 修改点赞个数
+                    currentArticle.likeCount += 1;
+                    $('#details_article_likeCount').html(currentArticle.likeCount);
+                        $.toast({
+                        heading: '成功',
+                        text: '点赞成功',
+                        icon: 'success'
+                    });
+
+                } else {
+                    // 提示
+                    $.toast({
+                        heading: '提示',
+                        text: respData.message,
+                        icon: 'info'
+                    });
+                }
+            },
+            error: function () {
+                $.toast({
+                    heading: '错误',
+                    text: '出错了，请联系管理员',
+                    icon: 'error'
+                });
+            }
+        });
     });
 
     // ====================== 回复帖子 ======================
-    $('#details_btn_article_reply').click(function () {
-      let articleIdEl = $('#details_article_id');
-      let replyContentEl = $('#details_article_reply_content');
-      // 非空校验
-      if (!replyContentEl.val()) {
-        // 提示
+$('#details_btn_article_reply').click(function () {
+    // 获取文章ID和回复内容的元素
+    let articleIdEl = $('#details_article_id');
+    let replyContentEl = $('#details_article_reply_content');
+
+    // 非空校验
+    if (!replyContentEl.val().trim()) {
+        // 提示用户输入回复内容
         $.toast({
-          heading: '提示',
-          text: '请输入回复内容',
-          icon: 'warning'
+            heading: '提示',
+            text: '请输入回复内容',
+            icon: 'warning'
         });
         return;
-      }
+    }
+
+    // 构造回复对象
+    let articleReplyObj = JSON.stringify({
+        articleId: articleIdEl.val(),
+        content: replyContentEl.val()
+    });
+
+    // 发送请求
+    $.ajax({
+        type: 'POST', // 请求方法使用大写
+        url: '/reply/add', // 修正URL拼写错误，并使用模板字符串
+        data: articleReplyObj,
+        contentType: 'application/json',
+        success: function (respData) {
+            // 使用状态码判断是否成功
+            if (respData.code === 0) {
+                // 清空输入区
+                editor.setValue('');
+
+                // 更新回复数
+                currentArticle.replyCount += 1;
+                $('#details_article_replyCount').html(currentArticle.replyCount);
+
+                // 构建回复页面
+                loadArticleDetailsReply();
+
+                // 提示成功
+                $.toast({
+                    heading: '提示',
+                    text: respData.message,
+                    icon: 'success'
+                });
+            } else {
+                // 提示失败信息
+                $.toast({
+                    heading: '提示',
+                    text: respData.message || '回复失败，请稍后重试',
+                    icon: 'info'
+                });
+            }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            // 显示错误提示
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员。错误详情：' + errorThrown,
+                icon: 'error'
+            });
+        }
+    });
+
 
       // 构造帖子对象
       
@@ -487,11 +598,38 @@
     // 成功后，调用changeNavActive($('#nav-link-title'));  回到首页
     // url: 'article/delete?id=' + $('#details_article_id').val()
     $('#details_artile_delete').click(function () {
-      $.ajax({
-        
-
-      });
-
+        $.ajax({
+            type: 'post',
+            url: 'article/delete?id=' + $('#details_article_id').val(),
+            success: function (respData) {
+                // 使用状态码判断是否成功
+                if (respData.code === 0) {
+                    // 初始化页面内容
+                    changeNavActive($('#nav-link-title'));
+                    
+                    // 提示
+                    $.toast({
+                        heading: '提示',
+                        text: '删除成功',
+                        icon: 'success'
+                    });
+                } else {
+                    // 提示
+                    $.toast({
+                        heading: '提示',
+                        text: respData.message,
+                        icon: 'info'
+                    });
+                }
+            },
+            error: function () {
+                $.toast({
+                    heading: '错误',
+                    text: '出错了，请联系管理员',
+                    icon: 'error'
+                });
+            }
+        });
     });
 
     // ====================== 处理编辑事件 ======================

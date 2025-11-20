@@ -121,4 +121,71 @@ public class ArticleServiceImpl implements ArticleService {
             throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
         }
     }
+
+    @Override
+    public void addLikeCount(Long id) {
+        if (id == null || id < 0) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        //获取帖子
+        ArticleDetailDTO articleDetailDTO = articleMapper.selectDetailById(id);
+        if (articleDetailDTO == null || articleDetailDTO.getState() == 1) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        //构造更新数据
+        Article updateArticle = new Article();
+        updateArticle.setId(articleDetailDTO.getId());
+        updateArticle.setLikeCount(articleDetailDTO.getLikeCount() + 1);
+        //更新
+        int row = articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
+
+    @Transactional
+    @Override
+    public void deleteArticle(Long id) {
+        if (id == null || id < 0) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        Article article = articleMapper.selectByPrimaryKey(id);
+        if (article == null) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        Article updateArticle = new Article();
+        updateArticle.setId(article.getId());
+        updateArticle.setDeleteState((byte)1);
+
+        int row =  articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+        }
+        boardService.subOneBoardCount(article.getBoardId());
+        userService.subOneArticleCount(article.getUserId());
+    }
+
+    @Override
+    public void addOneReplyCount(Long id) {
+        if (id == null || id < 0) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        Article article = articleMapper.selectByPrimaryKey(id);
+        if (article == null || article.getDeleteState() == 1) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_NOT_EXISTS));
+        }
+        if (article.getState() == 1) {
+            throw new AppException(AppResult.failed(ResultCode.FAILED_FORBIDDEN));
+        }
+        Article updateArticle = new Article();
+        updateArticle.setId(article.getId());
+        updateArticle.setReplyCount(article.getReplyCount() + 1);
+
+        int row = articleMapper.updateByPrimaryKeySelective(updateArticle);
+        if (row != 1) {
+            log.warn(ResultCode.ERROR_SERVICES.toString());
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
 }

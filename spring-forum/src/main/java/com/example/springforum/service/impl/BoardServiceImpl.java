@@ -49,6 +49,32 @@ public class BoardServiceImpl implements BoardService {
     }
 
     @Override
+    public void subOneBoardCount(Long id) {
+        if  (id == null || id <= 0) {
+//            log.info("")
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        Board board = boardMapper.selectByPrimaryKey(id);
+        if (board == null) {
+            throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
+        }
+        Board updateBoard = new Board();
+        updateBoard.setId(id);
+        updateBoard.setArticleCount(board.getArticleCount() - 1);
+
+        //小于0的情况
+        if (updateBoard.getArticleCount() < 0) {
+            updateBoard.setArticleCount(0);
+        }
+        int row = boardMapper.updateByPrimaryKeySelective(updateBoard);
+
+        if (row != 1) {
+            log.warn("更新不为1");
+            throw new AppException(AppResult.failed(ResultCode.ERROR_SERVICES));
+        }
+    }
+
+    @Override
     public Board getBoardById(Long id) {
         if  (id == null || id <= 0) {
             throw new AppException(AppResult.failed(ResultCode.ERROR_IS_NULL));
