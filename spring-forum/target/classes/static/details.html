@@ -319,12 +319,12 @@
       }
       console.log(article.isOwn)
       // 是否显示站内信按钮
-      if (article.id == currentUserId) {
+      if (article.userId == currentUserId) {
         $('#div_details_send_message').hide();
       } else {
         // 设置站内信目标用户信息
         $('#btn_details_send_message').click(function() {
-          setMessageReceiveUserInfo(article.id, article.nickname);
+          setMessageReceiveUserInfo(article.userId, article.nickname);
         });
       }
       // 个人帖子列表
@@ -440,12 +440,13 @@
           + ' </div>'
           + ' </div>';
 
-        
+        console.log(articleReply.userId+ ' ' + currentUserId)
+      
         let replyItem = $(replyHtml);
         // 获取标题的 a 标签
         let replySendMessageDiv = replyItem.find('.div_reply_send_message');
         // 是否显示站内信按钮
-        if (articleReply.id == currentUserId) {
+        if (articleReply.userId == currentUserId) {
           replySendMessageDiv.css('display', 'none');
         } else {
           console.log('显示回复中的站内信');
@@ -454,7 +455,7 @@
           console.log(replySendMessageBtn);
           replySendMessageBtn.click(function() {
             console.log(articleReply);
-            setMessageReceiveUserInfo(articleReply.id, articleReply.nickname);
+            setMessageReceiveUserInfo(articleReply.userId, articleReply.nickname);
         });
         }
         // 个人帖子列表
@@ -469,7 +470,7 @@
         replyArea.append(replyItem);
         
         // 处理内容
-        editormd.markdownToHTML('details_article_reply_content_' + articleReply.id, { markdown: articleReply.content });
+        editormd.markdownToHTML('details_article_reply_content_' + articleReply.userId, { markdown: articleReply.content });
       });
     }
 

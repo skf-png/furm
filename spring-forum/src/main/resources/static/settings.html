@@ -283,6 +283,10 @@
                 $('settings_nickname').html(user.nickname);
                 $('index_nav_nickname').html(user.nickname);
               }
+              if (type == 2) {
+                location.assign('sign-in.html');
+                return;
+              }
                 $.toast({
                     heading: '成功',      // 提示标题
                     text: '修改成功', // 提示内容

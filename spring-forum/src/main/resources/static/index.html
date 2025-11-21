@@ -324,6 +324,7 @@
           $('#index_nav_nickname').html(user.nickname);
           //console.log(subName);
           $('#index_nav_name_sub').html(subName);
+          currentUserId = user.id;
         }
       }
     });
@@ -455,14 +456,48 @@
       }
 
       // 构造发送数据
-      let postData = {
-        receiveUserId : receiveUserIdEl.val(),
+      let postData = JSON.stringify({
+        id : receiveUserIdEl.val(),
         content : messageContentEl.val()
-      };
+      });
 
       // 发送站内信请求 url = message/send, 成功与失败都调用cleanMessageForm()方法，清空输入框
       $.ajax({
+          type: 'post',
+          url: 'message/send',
+          contentType: 'application/json',
+          data: postData,
+          success: function (respData) {
+              // 使用状态码判断请求是否成功（通常 code === 0 表示成功）
+              if (respData.code === 0) {
+                  // 请求成功，调用方法渲染文章列表
+                  cleanMessageForm();
+                   $.toast({
+                      heading: '成功',      // 提示标题
+                      text: '发送成功', // 提示内容
+                      icon: 'success'          // 图标类型：info / success / error / warning
+                  });
+              } else {
+                  // 打印错误信息到控制台（调试用）
+                  console.log(respData.message);
 
+                  // 使用 toast 组件给用户展示错误提示
+                  $.toast({
+                      heading: '提示',      // 提示标题
+                      text: respData.message, // 提示内容
+                      icon: 'info'          // 图标类型：info / success / error / warning
+                  });
+              }
+          },
+          // 请求失败回调（比如网络错误、404、500 等）
+          error: function () {
+              // 提示用户发生了网络或服务端错误
+              $.toast({
+                  heading: '错误',
+                  text: '出错了，请联系管理员',
+                  icon: 'error'
+              });
+          }
       });
     });
 
@@ -483,7 +518,39 @@
     // 成功后，处理小红点是否显示 #index_nva_message_badge
     function requestMessageUnreadCount () {
       $.ajax({
-        
+        type: 'get',
+        url: 'message/getUnreadCount',
+          success: function (respData) {
+            // 使用状态码判断请求是否成功（通常 code === 0 表示成功）
+            if (respData.code === 0) {
+                // 请求成功，调用方法渲染文章列表
+                  let messageBadegeE1 = $('#index_nva_message_badge');
+                if (respData.data > 0) {
+                  messageBadegeE1.show();
+                } else {
+                  messageBadegeE1.hide();
+                }
+            } else {
+                // 打印错误信息到控制台（调试用）
+                console.log(respData.message);
+
+                // 使用 toast 组件给用户展示错误提示
+                $.toast({
+                    heading: '提示',      // 提示标题
+                    text: respData.message, // 提示内容
+                    icon: 'info'          // 图标类型：info / success / error / warning
+                });
+            }
+        },
+        // 请求失败回调（比如网络错误、404、500 等）
+        error: function () {
+            // 提示用户发生了网络或服务端错误
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员',
+                icon: 'error'
+            });
+        }
       });
     }
     requestMessageUnreadCount();
@@ -493,7 +560,33 @@
     // 成功后，调用buildMessageList() 方法构建站内信列表
     function requestMessageList () {
       $.ajax({
-        
+        type: 'get',
+        url: 'message/getMessagesByUserId',
+          success: function (respData) {
+            // 使用状态码判断请求是否成功（通常 code === 0 表示成功）
+            if (respData.code === 0) {
+              buildMessageList(respData.data);
+            } else {
+                // 打印错误信息到控制台（调试用）
+                console.log(respData.message);
+
+                // 使用 toast 组件给用户展示错误提示
+                $.toast({
+                    heading: '提示',      // 提示标题
+                    text: respData.message, // 提示内容
+                    icon: 'info'          // 图标类型：info / success / error / warning
+                });
+            }
+        },
+        // 请求失败回调（比如网络错误、404、500 等）
+        error: function () {
+            // 提示用户发生了网络或服务端错误
+            $.toast({
+                heading: '错误',
+                text: '出错了，请联系管理员',
+                icon: 'error'
+            });
+        }
       });
     }
     requestMessageList();
@@ -518,7 +611,7 @@
           + ' <div class="col text-truncate"> '
           + ' <a href="javascript:void(0);" class="text-body d-block index_message_title" data-bs-toggle="modal" data-bs-target="#index_message_reply_modal"> '
           +  ' <span class="index_message_item_statue">[已读]</span> &nbsp; '
-          + ' <span>来自 <strong> '+ messageItem.postUser.nickname 
+          + ' <span>来自 <strong> '+ messageItem.nickname 
           + ' </strong> 的消息</span></a> '
           + ' <div class="d-block text-muted text-truncate mt-n1"> '
           + messageItem.content
@@ -560,18 +653,38 @@
           // 站内信Id
           $('#index_message_detail_id').val(messageItem.id);
           // 标题
-          $('#index_message_detail_title').html('收到来自 <strong>' + messageItem.postUser.nickname + '</strong> 的新消息');
+          $('#index_message_detail_title').html('收到来自 <strong>' + messageItem.nickname + '</strong> 的新消息');
           // 内容
           $('#index_message_detail_content').html(messageItem.content);
           // 接收者Id
-          $('#index_message_reply_receive_user_id').val(messageItem.postUser.id);
+          $('#index_message_reply_receive_user_id').val(messageItem.id);
           // 接收者信息
-          $('#index_message_reply_receive_user_name').html('回复给: ' + messageItem.postUser.nickname);
+          $('#index_message_reply_receive_user_name').html('回复给: ' + messageItem.nickname);
           // 复位回复区域
           $('#index_message_reply_div').hide();
           // 复位接钮显示 
           $('#btn_index_message_reply').show();
           $('#btn_index_send_message_reply').hide();
+
+          if (messageItem.state == 0 && statusDotEl.hasClass('status-dot-animated bg-red')) {
+              $.ajax ({
+              type : 'post',
+              url : 'message/updateState',
+              contentType : 'application/json',
+              data : JSON.stringify({id : messageItem.id,state: 1}),
+              // 成功回调
+                success : function (respData) {
+                  if (respData.code == 0) {
+                    // 更新⻚⾯显⽰效果和messageItem.state
+                    statusDotEl.removeClass('status-dot-animated bg-red');
+                    // 修改未读为已读
+                    statusDescEl.html('[已读]');
+                    // 修改本地的对象状态属性
+                    messageItem.state = 1;
+                }
+              }
+            });
+          }
 
         });
 
@@ -627,11 +740,10 @@
       }
 
       // 构造请求数据
-      let postData = {
-        repliedId: $('#index_message_detail_id').val(),
-        receiveUserId : $('#index_message_reply_receive_user_id').val(),
+      let postData = JSON.stringify({
+        id: $('#index_message_detail_id').val(),
         content: replyReceiveContentEl.val()
-      };
+      });
 
       // 发送请求 message/reply
       // 回复成功后刷新未读标识和站内信列表
@@ -639,8 +751,42 @@
       // requestMessageList();
       // // 清空输入区
       // cleanMessageReplyForm ();
-      $.ajax ({
-        
+      $.ajax({
+          type: 'post',
+          url: 'message/reply',
+          contentType: 'application/json',
+          data: postData,
+          // 回调
+          success: function(respData) {
+              if (respData.code == 0) {
+                  // 回复成功后刷新未读标识和站内信列表
+                  requestMessageUnreadCount();
+                  requestMessageList();
+                  // 清空输入区
+                  cleanMessageReplyForm();
+                  // 提示信息
+                  $.toast({
+                      heading: '成功',
+                      text: respData.message,
+                      icon: 'success'
+                  });
+              } else {
+                  // 提示信息
+                  $.toast({
+                      heading: '警告',
+                      text: respData.message,
+                      icon: 'warning'
+                  });
+              }
+          },
+          error: function() {
+              // 提示信息
+              $.toast({
+                  heading: '错误',
+                  text: '访问出现问题，请与管理员联系.',
+                  icon: 'error'
+              });
+          }
       });
 
 
